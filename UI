@@ -1,0 +1,212 @@
+<!-- This is the user interface for our simple news chatbot. -->
+<!-- It uses Tailwind CSS to look clean and modern. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple News Chatbot</title>
+    <!-- We load Tailwind CSS from a CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- We also set a nice font for a modern look -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Simple News Chatbot</h1>
+            <p class="text-lg text-slate-600">Get the latest news highlights and ask questions.</p>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="grid md:grid-cols-2 gap-8">
+            <!-- News Highlights Section -->
+            <section class="bg-white rounded-xl shadow-lg p-6 flex flex-col">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-700">Latest News Highlights</h2>
+
+                <!-- Category Tabs (for classification) -->
+                <div id="category-tabs" class="flex space-x-2 mb-4">
+                    <button data-category="sports" class="category-btn bg-indigo-500 text-white font-semibold py-2 px-4 rounded-full transition-colors duration-200 hover:bg-indigo-600">Sports</button>
+                    <button data-category="lifestyle" class="category-btn bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-full transition-colors duration-200 hover:bg-slate-300">Lifestyle</button>
+                    <button data-category="music" class="category-btn bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-full transition-colors duration-200 hover:bg-slate-300">Music</button>
+                    <button data-category="finance" class="category-btn bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-full transition-colors duration-200 hover:bg-slate-300">Finance</button>
+                </div>
+
+                <!-- News List Display -->
+                <div id="news-content-display" class="space-y-6 overflow-y-auto pr-2">
+                    <!-- News articles will be dynamically inserted here by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Chatbot Section -->
+            <section class="bg-white rounded-xl shadow-lg p-6 flex flex-col h-full">
+                <h2 class="text-2xl font-bold mb-4 text-emerald-700">Ask the Chatbot</h2>
+                
+                <!-- Chat Display Area -->
+                <div id="chat-display" class="flex-grow bg-slate-100 rounded-lg p-4 overflow-y-auto mb-4 border border-slate-300">
+                    <div class="mb-2">
+                        <span class="font-bold text-emerald-700">AI:</span>
+                        <p class="inline-block bg-emerald-200 text-emerald-900 rounded-lg px-3 py-1 ml-1 max-w-[80%]">Hello! I can answer questions about the news highlights. What would you like to know?</p>
+                    </div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="user-input" class="flex-grow p-3 rounded-lg border border-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all" placeholder="Type your question here...">
+                    <button id="send-btn" class="bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-emerald-700 transition-colors shadow-md active:scale-95">Send</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Sample data that mimics the output of the Python script with classification and clustering
+        const newsData = {
+            "sports": [
+                {
+                    "title": "Australia's cricket team wins a major tournament in London",
+                    "summary": "The Australian cricket team has secured a historic victory in a thrilling final match against their rivals.",
+                    "sources": ["The Guardian", "7News Sports", "BBC Sport"],
+                    "frequency": 3
+                },
+                {
+                    "title": "Local team signs star player in a record-breaking deal",
+                    "summary": "The team announced the acquisition of a new forward in a transfer deal that has shocked the sporting world.",
+                    "sources": ["ESPN", "Daily Mail"],
+                    "frequency": 2
+                }
+            ],
+            "lifestyle": [
+                {
+                    "title": "New study shows benefits of a plant-based diet",
+                    "summary": "Researchers have found that people who eat plant-based diets have lower risks of heart disease and diabetes.",
+                    "sources": ["Health Today", "Lifestyle Magazine"],
+                    "frequency": 2
+                },
+                {
+                    "title": "Tips for improving your home office setup",
+                    "summary": "Experts provide advice on creating a more comfortable and productive workspace at home, focusing on ergonomics and lighting.",
+                    "sources": ["Forbes", "Home Decor Monthly"],
+                    "frequency": 2
+                }
+            ],
+            "music": [
+                {
+                    "title": "Popular artist releases surprise new album",
+                    "summary": "The singer-songwriter dropped a highly anticipated new album with no prior announcement, to the delight of fans.",
+                    "sources": ["Rolling Stone", "Billboard"],
+                    "frequency": 2
+                }
+            ],
+            "finance": [
+                {
+                    "title": "New technology company raises $50 million in funding",
+                    "summary": "A fintech startup specializing in digital payments has successfully closed a Series B funding round, securing significant capital for expansion.",
+                    "sources": ["TechCrunch", "Financial Times"],
+                    "frequency": 2
+                },
+                {
+                    "title": "Latest analysis on the global financial market",
+                    "summary": "Economists discuss the potential impacts of recent policy changes on global stock markets and interest rates.",
+                    "sources": ["Bloomberg", "Wall Street Journal"],
+                    "frequency": 2
+                }
+            ]
+        };
+
+        // Get the HTML elements we need to work with
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatDisplay = document.getElementById('chat-display');
+        const categoryTabs = document.getElementById('category-tabs');
+        const newsContentDisplay = document.getElementById('news-content-display');
+
+        // This function adds a new message to the chat display
+        function addMessage(role, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'mb-2';
+            messageDiv.innerHTML = `<span class="font-bold text-${role === 'user' ? 'indigo-700' : 'emerald-700'}">${role === 'user' ? 'You:' : 'AI:'}</span> <p class="inline-block bg-${role === 'user' ? 'indigo-200' : 'emerald-200'} text-${role === 'user' ? 'indigo-900' : 'emerald-900'} rounded-lg px-3 py-1 ml-1 max-w-[80%]">${message}</p>`;
+            chatDisplay.appendChild(messageDiv);
+            chatDisplay.scrollTop = chatDisplay.scrollHeight; // Scroll to the bottom
+        }
+
+        // This function dynamically generates and displays the news content
+        function displayNews(category) {
+            newsContentDisplay.innerHTML = '';
+            const articles = newsData[category];
+            if (!articles || articles.length === 0) {
+                newsContentDisplay.innerHTML = `<p class="text-slate-500 italic">No news available for this category.</p>`;
+                return;
+            }
+
+            articles.forEach(article => {
+                const articleDiv = document.createElement('div');
+                articleDiv.className = 'bg-slate-50 p-4 rounded-lg border border-slate-200 transition-shadow duration-200 hover:shadow-md';
+                articleDiv.innerHTML = `
+                    <h3 class="text-md font-bold text-slate-900 mb-1">${article.title}</h3>
+                    <p class="text-sm text-slate-700 mb-2">${article.summary}</p>
+                    <div class="flex items-center text-xs text-slate-500">
+                        <span class="font-semibold text-slate-700 mr-2">${article.frequency} Sources:</span>
+                        ${article.sources.map(source => `<span>${source}</span>`).join('<span class="mx-1">•</span>')}
+                    </div>
+                `;
+                newsContentDisplay.appendChild(articleDiv);
+            });
+        }
+
+        // This function handles the click event for category tabs
+        function handleCategoryClick(event) {
+            // First, remove active styles from all buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-500', 'text-white');
+                btn.classList.add('bg-slate-200', 'text-slate-700');
+            });
+            
+            // Then, add active styles to the clicked button
+            const clickedBtn = event.target;
+            clickedBtn.classList.add('bg-indigo-500', 'text-white');
+            clickedBtn.classList.remove('bg-slate-200', 'text-slate-700');
+
+            const category = clickedBtn.dataset.category;
+            displayNews(category);
+        }
+
+        // This function simulates sending a message and getting a response
+        function handleSend() {
+            const query = userInput.value.trim();
+            if (query === '') {
+                return; // Do nothing if the input is empty
+            }
+            
+            // Show the user's message
+            addMessage('user', query);
+            
+            // Clear the input field
+            userInput.value = '';
+
+            // Simulate the AI processing the request
+            setTimeout(() => {
+                let aiResponse = "This is a simulated response. A real chatbot would connect to the Python script to get a real answer!";
+                addMessage('ai', aiResponse);
+            }, 500);
+        }
+
+        // Add event listeners
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                handleSend();
+            }
+        });
+        categoryTabs.addEventListener('click', handleCategoryClick);
+
+        // Initial display on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            displayNews('sports');
+        });
+    </script>
+</body>
+</html>
+
